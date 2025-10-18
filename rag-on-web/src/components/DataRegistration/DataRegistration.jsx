@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useApi } from '../../hooks/useApi';
 
 const DataRegistration = () => {
@@ -91,7 +91,7 @@ const DataRegistration = () => {
                 onChange={handleFileChange}
                 className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
-              <p className="mt-2 text-xs text-gray-500">To test errors, use a file with "fail" in its name.</p>
+
             </div>
           )}
 
@@ -108,7 +108,7 @@ const DataRegistration = () => {
                 placeholder="https://example.com"
                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
-              <p className="mt-2 text-xs text-gray-500">To test errors, use a URL with "fail" or "network error" in it.</p>
+
             </div>
           )}
 

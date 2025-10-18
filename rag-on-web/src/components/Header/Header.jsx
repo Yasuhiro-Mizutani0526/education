@@ -1,4 +1,4 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 
 const Header = ({ activeTab, setActiveTab }) => {
   const baseClasses = "px-4 py-2 rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white";
@@ -26,6 +26,11 @@ const Header = ({ activeTab, setActiveTab }) => {
       </nav>
     </header>
   );
+};
+
+Header.propTypes = {
+  activeTab: PropTypes.string.isRequired,
+  setActiveTab: PropTypes.func.isRequired,
 };
 
 export default Header;

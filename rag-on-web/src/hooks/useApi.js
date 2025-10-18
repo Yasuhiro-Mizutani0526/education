@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
-// Dummy Webhook URLs
-const N8N_WEBHOOK_URL_CHAT = 'https://dummy.n8n.url/webhook/chat';
-const N8N_WEBHOOK_URL_DATA_REGISTRATION = 'https://dummy.n8n.url/webhook/data-registration';
+// Actual n8n Webhook URLs provided by the user
+const N8N_WEBHOOK_URL_CHAT = 'http://localhost:5678/webhook-test/d10ce9ba-e535-40a7-aad6-14a922b24ef9';
+const N8N_WEBHOOK_URL_DATA_REGISTRATION = 'http://localhost:5678/webhook-test/a8d81fee-2bd6-4f11-89fc-8118ed761a5a';
 
 export const useApi = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,42 +12,56 @@ export const useApi = () => {
     setIsLoading(true);
     setError(null);
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const url = endpoint === 'chat' ? N8N_WEBHOOK_URL_CHAT : N8N_WEBHOOK_URL_DATA_REGISTRATION;
 
     try {
-      // This is a mock response. In a real scenario, you'd use fetch().
-      // We will simulate different scenarios based on the input.
+      const options = {
+        method: 'POST',
+      };
 
-      if (data instanceof FormData && data.get('file')) {
-        const file = data.get('file');
-        if (file.name.includes('fail')) {
-          throw new Error('File upload failed');
+      if (data instanceof FormData) {
+        // For file uploads, let the browser set the Content-Type header
+        options.body = data;
+      } else {
+        // For JSON data (chat, URL registration)
+        options.headers = { 'Content-Type': 'application/json' };
+        options.body = JSON.stringify(data);
+      }
+
+      const response = await fetch(url, options);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error response:', errorText);
+        let errorMessage = `HTTP error! Status: ${response.status}`;
+        try {
+            const errorData = JSON.parse(errorText);
+            errorMessage = errorData.message || errorMessage;
+        } catch {
+            // The response was not JSON, use the raw text if it's not too long
+            errorMessage = errorText.length < 200 ? errorText : errorMessage;
         }
-        return { success: true, message: 'File uploaded successfully.' };
+        throw new Error(errorMessage);
       }
 
-      if (data.url && data.url.includes('fail')) {
-        throw new Error('URL registration failed');
+      // n8n can sometimes return an empty body with a 200 OK status for webhooks.
+      // We need to handle this case gracefully.
+      const responseText = await response.text();
+      if (!responseText) {
+          return { success: true, message: 'Request received by n8n.' };
       }
 
-      if (data.message && data.message.toLowerCase().includes('fail')) {
-          throw new Error('AI is not responding');
-      }
-
-      if ( (data.message && data.message.toLowerCase().includes('network error')) ||
-           (data.url && data.url.includes('network error')) ) {
-        throw new Error('Could not connect to the server. Please check if n8n is running.');
-      }
-
-      if (endpoint === 'chat') {
-        return { answer: `This is a mocked AI response for your question: "${data.message}"` };
-      }
-
-      return { success: true, message: 'Data registered successfully.' };
+      const result = JSON.parse(responseText);
+      return result;
 
     } catch (err) {
-      setError(err.message || 'An unknown error occurred.');
+      console.error('Fetch error:', err);
+      // More user-friendly network error message
+      if (err instanceof TypeError) { // This often indicates a network failure
+          setError('Failed to connect to the server. Please ensure n8n is running and accessible.');
+      } else {
+          setError(err.message || 'An unknown error occurred.');
+      }
       return null;
     } finally {
       setIsLoading(false);

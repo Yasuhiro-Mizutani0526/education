@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useApi } from '../../hooks/useApi';
 
 const Chat = () => {
@@ -110,7 +110,7 @@ const Chat = () => {
               )}
             </button>
           </form>
-          <p className="text-xs text-gray-500 mt-2 pl-1">To test errors, try sending a message containing "fail" or "network error".</p>
+
         </div>
       </div>
     </div>
